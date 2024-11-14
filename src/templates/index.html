@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Speech Analysis Dashboard</title>
+   <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 min-h-screen text-white">
+   <div class="container mx-auto px-4 py-8">
+       <div class="max-w-4xl mx-auto">
+           <h1 class="text-4xl font-bold text-center mb-8">Speech Analysis Dashboard</h1>
+           
+           <!-- Recording Section -->
+           <div class="bg-gray-800 rounded-lg p-6 mb-8">
+               <div class="flex flex-col items-center space-y-4">
+                   <button id="recordButton" class="w-24 h-24 rounded-full bg-blue-500 hover:bg-blue-600 focus:outline-none transition-all duration-300 flex items-center justify-center">
+                       <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                       </svg>
+                   </button>
+                   <div id="status" class="text-lg">Tap to speak</div>
+               </div>
+           </div>
+           
+           <!-- Latest Transcript -->
+           <div class="bg-gray-800 rounded-lg p-6 mb-8">
+               <h2 class="text-xl font-semibold mb-4">Latest Transcript</h2>
+               <div id="latestTranscript" class="text-gray-300 min-h-[60px]"></div>
+               <div id="sentimentDisplay" class="mt-4 text-sm"></div>
+           </div>
+           
+           <!-- Transcript History -->
+           <div class="bg-gray-800 rounded-lg p-6">
+               <h2 class="text-xl font-semibold mb-4">Transcript History</h2>
+               <div class="space-y-4">
+                   {% for transcript in transcripts %}
+                   <div class="bg-gray-700 rounded p-4">
+                       <div class="flex justify-between items-start mb-2">
+                           <span class="text-sm text-gray-400">{{ transcript.timestamp }}</span>
+                           <a href="{{ url_for('download_transcript', filename=transcript.filename) }}" 
+                              class="text-blue-400 hover:text-blue-300 text-sm">Download</a>
+                       </div>
+                       <p class="text-gray-300">{{ transcript.text }}</p>
+                       <div class="mt-2 text-sm">
+                           <span class="text-green-400">Positive: {{ "%.2f"|format(transcript.sentiment['pos']) }}</span>
+                           <span class="text-red-400 ml-4">Negative: {{ "%.2f"|format(transcript.sentiment['neg']) }}</span>
+                           <span class="text-yellow-400 ml-4">Neutral: {{ "%.2f"|format(transcript.sentiment['neu']) }}</span>
+                       </div>
+                   </div>
+                   {% endfor %}
+               </div>
+           </div>
+       </div>
+   </div>
+   
+   <script>
+       const recordButton = document.getElementById('recordButton');
+       const status = document.getElementById('status');
+       const latestTranscript = document.getElementById('latestTranscript');
+       const sentimentDisplay = document.getElementById('sentimentDisplay');
+
+       recordButton.addEventListener('click', async () => {
+           status.textContent = 'Listening...';
+           recordButton.classList.add('bg-red-500');
+           
+           try {
+               const response = await fetch('/recognize', { method: 'POST' });
+               const data = await response.json();
+               
+               if (data.success) {
+                   latestTranscript.textContent = data.text;
+                   const sentiment = data.sentiment;
+                   sentimentDisplay.innerHTML = `
+                       <span class="text-green-400">Positive: ${sentiment.pos.toFixed(2)}</span>
+                       <span class="text-red-400 ml-4">Negative: ${sentiment.neg.toFixed(2)}</span>
+                       <span class="text-yellow-400 ml-4">Neutral: ${sentiment.neu.toFixed(2)}</span>
+                   `;
+                   // Reload page to update transcript history
+                   setTimeout(() => location.reload(), 1000);
+               } else {
+                   status.textContent = data.error;
+               }
+           } catch (error) {
+               status.textContent = 'Error occurred';
+           }
+           
+           recordButton.classList.remove('bg-red-500');
+           status.textContent = 'Tap to speak';
+       });
+   </script>
+</body>
+</html>
