@@ -2,7 +2,7 @@
 
 ## Overview
 Real-time speech recognition and sentiment analysis web application built with Flask and Google's Speech Recognition API. Features an intuitive dashboard displaying transcription history, sentiment scores, and downloadable transcripts.
-![Interface](https://github.com/miladnasiri/Whisper-ONNX-converter/blob/df81511c8897211d4760eac66da5223043378a00/Final%20Verification%20Check.png)
+![Interface](https://github.com/miladnasiri/Speech-to-text-/blob/3333193a09e5647366bd3cd151c8c85d6a86ccd9/dashboard.png)
 ## Architecture & Methodology
 - **Speech Recognition**: Google Speech-to-Text API via SpeechRecognition library
 - **Sentiment Analysis**: NLTK VADER (Valence Aware Dictionary for Sentiment Reasoning)
